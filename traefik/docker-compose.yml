@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+  proxy:
+    image: traefik
+    command: --web --docker
+    networks:
+      - webgateway
+    ports:
+      - "80:80" # for the HTTP -> HTTPS redirection
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.toml:/etc/traefik/traefik.toml:ro
+    # - /dev/null:/traefik.toml
+      - ./acme/:/etc/traefik/acme
+
+networks:
+    webgateway:
+      driver: bridge

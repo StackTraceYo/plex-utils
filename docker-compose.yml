@@ -1,0 +1,98 @@
+version: '2'
+services:
+  deluge:
+    image: linuxserver/deluge
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /media/hd1/plex/config/deluge:/config
+      - /media/hd1/downloads/:/downloads
+    ports:
+      - 8112:8112
+    labels:
+      - "traefik.backend=deluge"
+      - "traefik.frontend.rule=Host:deluge.stacktraceyo.io"
+      - "traefik.port=8112"
+      - "traefik.enable=true"
+    # networks:
+    #   - web
+    #   - default
+  radarr:
+    image: linuxserver/radarr 
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /media/hd1/plex/config/radarr:/config
+      - /media/hd1/downloads/:/downloads
+      - /media/hd2/plex/media/movies:/movies
+    labels:
+      - "traefik.backend=radarr"
+      - "traefik.frontend.rule=Host:radarr.stacktraceyo.io"
+      - "traefik.port=7878"
+      - "traefik.enable=true"
+    ports:
+      - 7878:7878
+    # networks:
+    #   - web
+    #   - default
+    links:
+      - deluge
+      - jackett
+  sonarr:
+    image: linuxserver/sonarr
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /media/hd1/plex/config/sonarr:/config
+      - /media/hd1/downloads/:/downloads
+      - /media/hd2/plex/media/tv:/tv
+    labels:
+      - "traefik.backend=sonarr"
+      - "traefik.frontend.rule=Host:sonarr.stacktraceyo.io"
+      - "traefik.port=8989"
+      - "traefik.enable=true"
+    ports:
+      - 8989:8989
+    links:
+      - deluge
+      - jackett
+    # networks:
+    #   - web
+    #   - default
+  jackett:
+    image: linuxserver/jackett
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /media/hd1/plex/config/jackett:/config
+      - /media/hd1/blackhole:/downloads
+    ports:
+      - 9117:9117
+    links:
+      - deluge
+    labels:
+      - "traefik.backend=jackett"
+      - "traefik.frontend.rule=Host:jackett.stacktraceyo.io"
+      - "traefik.port=9117"
+      - "traefik.enable=true"
+    # networks:
+    #   - web
+    #   - default
+  ombi:
+    image: lsiodev/ombi-preview
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /media/hd1/plex/config/ombi:/config
+    ports:
+      - 3579:3579
+    links:
+      - sonarr
+      - radarr
+    labels:
+      - "traefik.backend=ombi"
+      - "traefik.frontend.rule=Host:request.stacktraceyo.io"
+      - "traefik.port=3579"
+      - "traefik.enable=true"
+    # networks:
+    #   - web
+    #   - default
+# networks:
+#   web:
+#     external:
+#       name: traefik_webgateway

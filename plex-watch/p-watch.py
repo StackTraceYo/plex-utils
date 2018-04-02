@@ -20,7 +20,7 @@ class FileToCopy:
         self.timestamp = timestamp
 
     def not_modified_since(self, timestamp, diff):
-        return ((timestamp - self.timestamp).total_seconds()) < diff
+        return ((timestamp - self.timestamp).total_seconds()) > diff
 
 
 class PlexWatcher(PatternMatchingEventHandler):
@@ -75,10 +75,14 @@ class PlexWatcher(PatternMatchingEventHandler):
 
     def check_pending(self):
         print "Checking Pending Files To Copy"
+        if len(self.pending.keys()) == 0:
+            print "No Files To Copy"
         for name, fc in self.pending.items():
+            print "Checking: ", name
             if fc.not_modified_since(datetime.now(), 60):
                 # file has not been touched for a minute
-                shutil.copy2(fc.from_path, fc.to_path)
+                shutil.copy2(fc.from_path, fc.new_path)
+                print "Copied: ", fc.from_path, " - To - ", fc.new_path
                 del self.pending[name]
             else:
                 print name + " was modified within 60 seconds"
@@ -100,6 +104,7 @@ class PlexWatcher(PatternMatchingEventHandler):
 
 if __name__ == '__main__':
     observer = Observer()
+    # testing directory_to_watch = "/home/ahmad/test/daymanbpi/downloads/1.SEED/3.Manual"
     directory_to_watch = "/home25/daymanbpi/downloads/1.SEED/3.Manual"
     observer.schedule(PlexWatcher(), path=directory_to_watch, recursive=True)
     observer.start()

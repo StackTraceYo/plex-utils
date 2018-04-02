@@ -1,6 +1,6 @@
-import datetime
 import shutil
 import time
+from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from watchdog.events import PatternMatchingEventHandler
@@ -20,7 +20,7 @@ class FileToCopy:
         self.timestamp = timestamp
 
     def not_modified_since(self, timestamp, diff):
-        return ((self.timestamp - timestamp).total_seconds()) < diff
+        return ((timestamp - self.timestamp).total_seconds()) < diff
 
 
 class PlexWatcher(PatternMatchingEventHandler):
@@ -52,7 +52,7 @@ class PlexWatcher(PatternMatchingEventHandler):
         new_path = self.gen_new_path(full_path)
         if new_path != None:
             print "New Path: ", new_path
-            fc = FileToCopy(full_path, new_path, datetime.datetime.now().time())
+            fc = FileToCopy(full_path, new_path, datetime.now())
             self.pending[full_path] = fc
         else:
             print "No Path Mapping Found For: ", full_path.split("3.Manual/")[1].split("/")[0]
@@ -70,13 +70,13 @@ class PlexWatcher(PatternMatchingEventHandler):
         full_path = event.src_path
         if full_path in self.pending:
             fc = self.pending[full_path]
-            fc.update(datetime.datetime.now().time())
+            fc.update(datetime.now())
             print "Updating Timestamp for: ", full_path
 
     def check_pending(self):
         print "Checking Pending Files To Copy"
         for name, fc in self.pending.items():
-            if fc.not_modified_since(datetime.datetime.now().time(), 60):
+            if fc.not_modified_since(datetime.now(), 60):
                 # file has not been touched for a minute
                 shutil.copy2(fc.from_path, fc.to_path)
                 del self.pending[name]

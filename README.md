@@ -1,8 +1,8 @@
 # plex utils
 
-####docker
+###docker
 - docker compose for plex
 - traefik routing (wip)
 
-####plex-watch
-- Filewatcher written in python to execute actions on file changes ( move, copy, handbrake ect..)
+###plex-watch
+- Filewatcher written in python that syncs directories 
